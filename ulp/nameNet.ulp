@@ -30,12 +30,19 @@
 
 #usage "en: Provides tools to enhance naming of nets in a design.\n"
        "run nameNet install - Installs the utility to the schematic context menus.\n"
+       "run nameNet version - Shows the version number of the ULP being called.\n"
        "run nameNet locate-ulp - Shows the location of the ULP being called (Useful for debug).\n"
        "run nameNet oldName newName - Renames a net from oldName to newName (Case Sensitive).\n"
+
+string VERSION = "0.5 alpha 3 (28-Feb-2017 11:13)";
 
 if (argv[1] == "install") {
    exit("edit .sch; set context wire 'Name Net...' 'run nameNet interactive';"
         "edit .sch; set context instance 'Name Nets...' 'run nameNet component';");
+} else if (argv[1] == "version"){
+   string tmp = "ULP Version: " + VERSION;
+   dlgMessageBox(tmp);
+   exit(0);
 } else if (argv[1] == "locate-ulp"){
    dlgMessageBox(argv[0]);
    exit(0);
