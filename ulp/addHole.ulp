@@ -36,10 +36,10 @@
 string VERSION = "0.1 alpha 1 (28-Feb-2017 21:33)";
 
 if (argv[1] == "--install") {
-   exit("edit .brd; set context wire 'Place hole (Non-PT)...' 'run addHole --arc';"
-        "           set context wire 'Place hole (PT)...' 'run addHole --arc plated';"
-        "           set context circle 'Place hole (Non-PT)...' 'run addHole --circle';"
-        "           set context circle 'Place hole (PT)...' 'run addHole --circle plated';");
+   exit("edit .brd; set context wire 'Place hole (Non-PT)...' 'run addHole';"
+        "           set context wire 'Place hole (PT)...' 'run addHole plated';"
+        "           set context circle 'Place hole (Non-PT)...' 'run addHole';"
+        "           set context circle 'Place hole (PT)...' 'run addHole plated';");
 } else if (argv[1] == "--version"){
    string tmp = "ULP Version: " + VERSION;
    dlgMessageBox(tmp);
@@ -47,52 +47,36 @@ if (argv[1] == "--install") {
 } else if (argv[1] == "--locate-ulp"){
    dlgMessageBox(argv[0]);
    exit(0);
-} else {
+} else if (board) {
 
    string cmd="";
    string grid="mil";
 
-   if (argv[1] == "--arc") {
-      if (board) {
-         board(B) {
-            if (B.grid.unit == GRID_UNIT_MIC) {
-               grid = "mic";
-            } else if (B.grid.unit == GRID_UNIT_MM) {
-               grid = "mm";
-            } else if (B.grid.unit == GRID_UNIT_INCH) {
-               grid = "in";
-            }
-            B.wires(W) {
-               if (ingroup(W)) {
-                  if (W.arc) {
-                     if (argv[2] == "plated") {
-                        sprintf(cmd, "GRID mil; VIA %f Round 1-16 (%f %f); CHA DRI %f (%f %f); GRID %s;", 2.0 * u2mil(W.arc.radius), u2mil(W.arc.xc), u2mil(W.arc.yc), 2.0 * u2mil(W.arc.radius), u2mil(W.arc.xc), u2mil(W.arc.yc), grid);
-                     } else {
-                        sprintf(cmd, "GRID mil; HOLE %f (%f %f); GRID %s;", 2.0 * u2mil(W.arc.radius), u2mil(W.arc.xc), u2mil(W.arc.yc), grid);
-                     }
-                  }
+   board(B) {
+      if (B.grid.unit == GRID_UNIT_MIC) {
+         grid = "mic";
+      } else if (B.grid.unit == GRID_UNIT_MM) {
+         grid = "mm";
+      } else if (B.grid.unit == GRID_UNIT_INCH) {
+         grid = "in";
+      }
+      B.wires(W) {
+         if (ingroup(W)) {
+            if (W.arc) {
+               if (argv[1] == "plated") {
+                  sprintf(cmd, "GRID mil; VIA %f Round 1-16 (%f %f); CHA DRI %f (%f %f); GRID %s;", 2.0 * u2mil(W.arc.radius), u2mil(W.arc.xc), u2mil(W.arc.yc), 2.0 * u2mil(W.arc.radius), u2mil(W.arc.xc), u2mil(W.arc.yc), grid);
+               } else {
+                  sprintf(cmd, "GRID mil; HOLE %f (%f %f); GRID %s;", 2.0 * u2mil(W.arc.radius), u2mil(W.arc.xc), u2mil(W.arc.yc), grid);
                }
             }
          }
       }
-   } else if (argv[1] == "--circle") {
-      if (board) {
-         board(B) {
-            if (B.grid.unit == GRID_UNIT_MIC) {
-               grid = "mic";
-            } else if (B.grid.unit == GRID_UNIT_MM) {
-               grid = "mm";
-            } else if (B.grid.unit == GRID_UNIT_INCH) {
-               grid = "in";
-            }
-            B.circles(C) {
-               if (ingroup(C)) {
-                  if (argv[2] == "plated") {
-                     sprintf(cmd, "GRID mil; VIA %f Round 1-16 (%f %f); CHA DRI %f (%f %f); GRID %s;", 2.0 * u2mil(C.radius), u2mil(C.x), u2mil(C.y), 2.0 * u2mil(C.radius), u2mil(C.x), u2mil(C.y), grid);
-                  } else {
-                     sprintf(cmd, "GRID mil; HOLE %f (%f %f); GRID %s;", 2.0 * u2mil(C.radius), u2mil(C.x), u2mil(C.y), grid);
-                  }
-               }
+      B.circles(C) {
+         if (ingroup(C)) {
+            if (argv[1] == "plated") {
+               sprintf(cmd, "GRID mil; VIA %f Round 1-16 (%f %f); CHA DRI %f (%f %f); GRID %s;", 2.0 * u2mil(C.radius), u2mil(C.x), u2mil(C.y), 2.0 * u2mil(C.radius), u2mil(C.x), u2mil(C.y), grid);
+            } else {
+               sprintf(cmd, "GRID mil; HOLE %f (%f %f); GRID %s;", 2.0 * u2mil(C.radius), u2mil(C.x), u2mil(C.y), grid);
             }
          }
       }
@@ -100,4 +84,7 @@ if (argv[1] == "--install") {
 
    exit(cmd);
 
+} else {
+   dlgMessageBox(":ERROR: This utility is for use from within the board editor only.");
+   exit(0);
 }
