@@ -4,8 +4,8 @@
  *    Date : 28-Feb-2017
  *  Author : Rachael Peterson
  *
- * Purpose : Provide the ability yo add eithe plated on non-plated holes based
- *         : arcs and circles already defined on the PCB, for example from a
+ * Purpose : Provide the ability to add either plated or non-plated holes based
+ *         : on arcs and circles already defined on the PCB, for example from a
  *         : mechanical drawing imported into EAGLE from a DXF file.
  *
  * License : Creative Commons Attribution-ShareAlike 4.0 International
