@@ -1,0 +1,92 @@
+/*
+ *   Title : showPart.ulp
+ * Version : 0.1 alpha 1
+ *    Date : 03-Mar-2017
+ *  Author : Rachael Peterson
+ *
+ * Purpose : Quickly switch to the board from the schematic or from the
+ *         : schematic to the board whilst highlighting the selected component.
+ *
+ * License : Creative Commons Attribution-ShareAlike 4.0 International
+ *         : CC BY-SA 4.0
+ *         : https://creativecommons.org/licenses/by-sa/4.0/
+ *
+ *******************************************************************************
+ *                           (c)Copyright 2017                                 *
+ *******************************************************************************
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
+#usage "en: Provides tools to enhance naming of nets in a design.\n"
+       "run nameNet --install - Installs the utility to the schematic context menus.\n"
+       "run nameNet --version - Shows the version number of the ULP being called.\n"
+       "run nameNet --locate-ulp - Shows the location of the ULP being called (Useful for debug).\n"
+
+string VERSION = "0.1 alpha 1 (03-Mar-2017 19:33)";
+
+if (argv[1] == "--install") {
+    exit("edit .sch; set context instance 'Show in Board' 'run showPart';"
+         "edit .brd; set context element 'Show in Schematic' 'run showPart';");
+} else if (argv[1] == "--version"){
+   string tmp = "ULP Version: " + VERSION;
+   dlgMessageBox(tmp);
+   exit(0);
+} else if (argv[1] == "--locate-ulp"){
+   dlgMessageBox(argv[0]);
+   exit(0);
+} else {
+
+   string name;
+   string cmd;
+
+   if (schematic) {
+      sheet(SH) {
+         SH.instances(IN) {
+            if (ingroup(IN)) {
+               name = IN.part.name;
+            }
+         }
+      }
+   } else if (board) {
+      board(BRD) {
+         BRD.elements(EL) {
+            if (ingroup(EL)) {
+               name = EL.name;
+            }
+         }
+      }
+   }
+
+   if (name) {
+      if (schematic) {
+         project.schematic(SCH) {
+            SCH.parts(P) {
+               if (P.name == name) {
+                  sprintf(cmd, "EDIT .brd; SHOW @ %s\n", P.name);
+               }
+            }
+         }
+      } else if (board) {
+         project.board(B) {
+            B.elements(E) {
+               if (E.name == name) {
+                  sprintf(cmd, "EDIT .sch; SHOW @ %s\n", E.name);
+               }
+            }
+         }
+      }
+   }
+
+   exit(cmd); // I'm done!
+
+}
