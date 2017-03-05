@@ -1,0 +1,64 @@
+/*
+ *   Title : netToText.ulp
+ * Version : 0.1 alpha 1
+ *    Date : 05-Mar-2017
+ *  Author : Rachael Peterson
+ *
+ * Purpose : When in the board editor a net name can be used as the source for
+ *         : adding text labels to the boatd e.g. for labelling connector pins.
+ *
+ * License : Creative Commons Attribution-ShareAlike 4.0 International
+ *         : CC BY-SA 4.0
+ *         : https://creativecommons.org/licenses/by-sa/4.0/
+ *
+ *******************************************************************************
+ *                           (c)Copyright 2017                                 *
+ *******************************************************************************
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
+#usage "en: Adds a text label to the selected net.\n"
+       "run netToText --install - Installs the utility to the schematic context menus.\n"
+       "run netToText --version - Shows the version number of the ULP being called.\n"
+       "run netToText --locate-ulp - Shows the location of the ULP being called (Useful for debug).\n"
+
+string VERSION = "1.0 (05-Mar-2017 16:29)";
+
+if (argv[1] == "--install") {
+    exit("edit .brd; set context wire 'Add Net Label...' 'run netToText';");
+} else if (argv[1] == "--version"){
+   string tmp = "ULP Version: " + VERSION;
+   dlgMessageBox(tmp);
+   exit(0);
+} else if (argv[1] == "--locate-ulp"){
+   dlgMessageBox(argv[0]);
+   exit(0);
+} else {
+
+    string cmd="";
+    string name="";
+
+    if (board) {
+        board(B) {
+            B.signals(SIG) {
+                if (ingroup(SIG)) {
+                    name = SIG.name;
+                }
+            }
+        }
+    }
+
+    sprintf(cmd, "TEXT %s", name);
+    exit(cmd);
+
+}
