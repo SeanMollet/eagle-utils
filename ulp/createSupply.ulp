@@ -1,0 +1,72 @@
+/*
+ *   Title : createSupply.ulp
+ * Version : 0.1 alpha 1
+ *    Date : 12-May-2017
+ *  Author : Rachael Peterson
+ *
+ * Purpose : Add supplies to a design. When run will find out what supplies
+ *         : already exist in the design and add these to a list to choose. In
+ *         : addition a new supply can be created based on an existing supply.
+ *
+ * License : Creative Commons Attribution-ShareAlike 4.0 International
+ *         : CC BY-SA 4.0
+ *         : https://creativecommons.org/licenses/by-sa/4.0/
+ *
+ *******************************************************************************
+ *                           (c)Copyright 2017                                 *
+ *******************************************************************************
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
+#usage "en: Add existing supplies into a design or create new supplies.\n"
+       "run createSupply --install - Installs the utility to the schematic menus.\n"
+       "run createSupply --version - Shows the version number of the ULP being called.\n"
+       "run createSupply --locate-ulp - Shows the location of the ULP being called (Useful for debug).\n"
+       "run createSupply --list - Shows the supplies in current use in the design.\n"
+       "run createSupply --create baseDevice newDevice - Create a new supply based on an existing supply.\n"
+
+string VERSION = "0.1 alpha 1 (12-May-2017 18:41)";
+
+if (argv[1] == "--install") {
+   // TBD
+   exit(0);
+} else if (argv[1] == "--version"){
+   string tmp = "ULP Version: " + VERSION;
+   dlgMessageBox(tmp);
+   exit(0);
+} else if (argv[1] == "--locate-ulp"){
+   dlgMessageBox(argv[0]);
+   exit(0);
+} else if (argv[1] == "--list"){
+   // TBD;
+   exit(0);
+} else if (argv[1] == "--create"){
+
+   string src=argv[2];
+   string dest=argv[3];
+   string cmd="";
+
+   if (library) {
+      sprintf(cmd, "copy %s.dev@ %s;copy %s.sym@ %s;name %s %s;edit %s.dev;del (0 0);add %s (0 0); edit;", src, dest, src, dest, src, dest, dest, dest);
+   }
+
+   exit(cmd);
+} else {
+
+   // Define variables
+
+   string cmd="";
+
+   exit(cmd);
+
+}
