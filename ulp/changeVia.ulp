@@ -69,7 +69,7 @@ if (argv[1] == "--install") {
             S.vias(V) {
                string viaInfo = "";
                int viaFound = 0;
-               sprintf(viaInfo, "%d\t%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
+               sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
                for (int i=0 ; i<=viaListLength ; i++) {
                   if (viaList[i] == viaInfo) {
                      viaFound = 1;
@@ -84,13 +84,13 @@ if (argv[1] == "--install") {
 
       result = dlgDialog("List/Update Vias") { // Create the dialog
          // List all the vias in the design and extract the parameters of the selected
-         dlgListView("Start\tEnd\tShape\tDrill\tDiameter", viaList, selected) {
+         dlgListView("Layers\tShape\tDrill\tDiameter", viaList, selected) {
          if (dlgSelectionChanged()) {
             board(B) {
                B.signals(S) {
                   S.vias(V) {
                      string viaInfo = "";
-                     sprintf(viaInfo, "%d\t%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
+                     sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
                      if (viaList[selected] == viaInfo) {
                         drillValue = u2mil(V.drill);
                         diameterValue = u2mil(V.diameter[V.start]);
@@ -133,7 +133,7 @@ if (argv[1] == "--install") {
       B.signals(S) {
          S.vias(V) {
             string viaInfo = "";
-            sprintf(viaInfo, "%d\t%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
+            sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
             if (viaList[selected] == viaInfo) {
                sprintf(tmp, "(%f %f) ", u2mil(V.x), u2mil(V.y));
                pointsList += tmp;
