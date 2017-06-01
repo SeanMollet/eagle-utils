@@ -31,10 +31,10 @@
        "run changeVia --version - Shows the version number of the ULP being called.\n"
        "run changeVia --locate-ulp - Shows the location of the ULP being called (Useful for debug).\n"
 
-string VERSION = "0.1 alpha 1 (01-Jun-2017 16:10)";
+string VERSION = "0.5 alpha 1 (02-Jun-2017 00:05)";
 
 if (argv[1] == "--install") {
-   exit("edit .brd; set context via 'Change Via...' 'run changeVia --interactive';");
+   exit("edit .brd; set context via 'Change Via...' 'run changeVia --context';");
 } else if (argv[1] == "--version"){
    string tmp = "ULP Version: " + VERSION;
    dlgMessageBox(tmp);
@@ -121,7 +121,7 @@ if (argv[1] == "--install") {
          dlgHBoxLayout {
             dlgStretch(1);
             dlgPushButton("-Cancel") {
-                  if (dlgMessageBox("Are you sure?", "Yes", "No") == 0) dlgReject();
+                  if (dlgMessageBox("Are you sure?", "Yes", "No") == 0) dlgReject(-1);
             }
             dlgPushButton("+&OK") dlgAccept(0);
          }
@@ -129,35 +129,46 @@ if (argv[1] == "--install") {
 
    }
 
-   board(B) {
-      B.signals(S) {
-         S.vias(V) {
-            string viaInfo = "";
-            sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
-            if (viaList[selected] == viaInfo) {
-               sprintf(tmp, "(%f %f) ", u2mil(V.x), u2mil(V.y));
-               pointsList += tmp;
+   if (result == 0) {
+
+      board(B) {
+         B.signals(S) {
+            S.vias(V) {
+               if (argv[1] == "--context") {
+                  if (ingroup(V)) {
+                     sprintf(tmp, "(%f %f) ", u2mil(V.x), u2mil(V.y));
+                     pointsList += tmp;
+                  }
+               } else {
+                  string viaInfo = "";
+                  sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
+                  if (viaList[selected] == viaInfo) {
+                     sprintf(tmp, "(%f %f) ", u2mil(V.x), u2mil(V.y));
+                     pointsList += tmp;
+                  }
+               }
             }
          }
       }
+
+      cmd += "GRID mil; CHA DRI ";
+      sprintf(tmp, "%f ", drillValue);
+      cmd += tmp;
+      cmd += pointsList;
+
+      cmd += "; CHA DIA ";
+      sprintf(tmp, "%f ", diameterValue);
+      cmd += tmp;
+      cmd += pointsList;
+
+      cmd += "; CHA SHA ";
+      sprintf(tmp, "%s ", shapeList[shapeValue]);
+      cmd += tmp;
+      cmd += pointsList;
+
+      cmd += "; GRID LAST;";
+
    }
-
-   cmd += "GRID mil; CHA DRI ";
-   sprintf(tmp, "%f ", drillValue);
-   cmd += tmp;
-   cmd += pointsList;
-
-   cmd += "; CHA DIA ";
-   sprintf(tmp, "%f ", diameterValue);
-   cmd += tmp;
-   cmd += pointsList;
-
-   cmd += "; CHA SHA ";
-   sprintf(tmp, "%s ", shapeList[shapeValue]);
-   cmd += tmp;
-   cmd += pointsList;
-
-   cmd += "; GRID LAST;";
 
    exit(cmd);
 
