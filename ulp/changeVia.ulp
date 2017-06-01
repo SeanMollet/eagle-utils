@@ -1,0 +1,185 @@
+/*
+ *   Title : changeVia.ulp
+ * Version : 0.1 alpha 1
+ *    Date : 01-Jun-2017
+ *  Author : Rachael Peterson
+ *
+ * Purpose : Facilitates easily adding all wire segments to a group
+ *
+ * License : Creative Commons Attribution-ShareAlike 4.0 International
+ *         : CC BY-SA 4.0
+ *         : https://creativecommons.org/licenses/by-sa/4.0/
+ *
+ *******************************************************************************
+ *                           (c)Copyright 2017                                 *
+ *******************************************************************************
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
+#usage "en: Enables via types to be easily changed globally within a board.\n"
+       "run changeVia --install - Installs the utility to the board context menus.\n"
+       "run changeVia --version - Shows the version number of the ULP being called.\n"
+       "run changeVia --locate-ulp - Shows the location of the ULP being called (Useful for debug).\n"
+
+string VERSION = "0.1 alpha 1 (01-Jun-2017 12:39)";
+
+if (argv[1] == "--install") {
+   exit("edit .brd; set context via 'Change Via...' 'run changeVia --interactive';");
+} else if (argv[1] == "--version"){
+   string tmp = "ULP Version: " + VERSION;
+   dlgMessageBox(tmp);
+   exit(0);
+} else if (argv[1] == "--locate-ulp"){
+   dlgMessageBox(argv[0]);
+   exit(0);
+} else {
+
+   // Define variables
+
+   string cmd="";
+   int result;
+
+   string viaList[];
+   int viaListLength = 0;
+   int selected = 0;
+
+   real drillValue = 0.0;
+   real diameterValue = 0.0;
+
+   string shapeList[] = {"Square", "Round", "Octagon"};
+   int shapeValue;
+
+   string tmp = "";
+
+   if (board) {
+      board(B) {
+         B.signals(S) {
+            S.vias(V) {
+               string viaInfo = "";
+               int viaFound = 0;
+               sprintf(viaInfo, "%d\t%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
+               for (int i=0 ; i<=viaListLength ; i++) {
+                  if (viaList[i] == viaInfo) {
+                     viaFound = 1;
+                  }
+               }
+               if (viaFound == 0) {
+                  viaList[viaListLength++] = viaInfo;
+               }
+            }
+         }
+      }
+
+      result = dlgDialog("List/Update Vias") { // Create the dialog
+         // List all the vias in the design and extract the parameters of the selected
+         dlgListView("Start\tEnd\tShape\tDrill\tDiameter", viaList, selected) {
+         if (dlgSelectionChanged()) {
+            board(B) {
+               B.signals(S) {
+                  S.vias(V) {
+                     string viaInfo = "";
+                     sprintf(viaInfo, "%d\t%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
+                     if (viaList[selected] == viaInfo) {
+                        drillValue = u2mil(V.drill);
+                        diameterValue = u2mil(V.diameter[V.start]);
+                        shapeValue = V.shape[V.start];
+                     }
+                  }
+               }
+            }
+            dlgRedisplay();
+         }
+
+         }
+         // Enable updated parameters to be specified
+         dlgHBoxLayout {
+            dlgLabel("Drill Size:");
+            dlgRealEdit(drillValue, 0.0, 9999.99);
+         }
+         dlgHBoxLayout {
+            dlgLabel("Pad diameter:");
+            dlgRealEdit(diameterValue, 0.0, 9999.99);
+         }
+         dlgHBoxLayout {
+            dlgLabel("Pad shape:");
+            dlgComboBox(shapeList, shapeValue) {}
+         }
+
+         // Add the usual dialog buttons to proceed (OK) or abandon changes (Cancel)
+         dlgHBoxLayout {
+            dlgStretch(1);
+            dlgPushButton("-Cancel") {
+                  if (dlgMessageBox("Are you sure?", "Yes", "No") == 0) dlgReject();
+            }
+            dlgPushButton("+&OK") dlgAccept(0);
+         }
+      };
+
+   }
+
+   cmd += "GRID mil; CHA DRI ";
+   sprintf(tmp, "%f ", drillValue);
+   cmd += tmp;
+
+   board(B) {
+      B.signals(S) {
+         S.vias(V) {
+            string viaInfo = "";
+            sprintf(viaInfo, "%d\t%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
+            if (viaList[selected] == viaInfo) {
+               sprintf(tmp, "(%f %f) ", u2mil(V.x), u2mil(V.y));
+               cmd += tmp;
+            }
+         }
+      }
+   }
+
+   cmd += "; CHA DIA ";
+   sprintf(tmp, "%f ", diameterValue);
+   cmd += tmp;
+
+   board(B) {
+      B.signals(S) {
+         S.vias(V) {
+            string viaInfo = "";
+            sprintf(viaInfo, "%d\t%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
+            if (viaList[selected] == viaInfo) {
+               sprintf(tmp, "(%f %f) ", u2mil(V.x), u2mil(V.y));
+               cmd += tmp;
+            }
+         }
+      }
+   }
+
+   cmd += "; CHA SHA ";
+   sprintf(tmp, "%s ", shapeList[shapeValue]);
+   cmd += tmp;
+
+   board(B) {
+      B.signals(S) {
+         S.vias(V) {
+            string viaInfo = "";
+            sprintf(viaInfo, "%d\t%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
+            if (viaList[selected] == viaInfo) {
+               sprintf(tmp, "(%f %f) ", u2mil(V.x), u2mil(V.y));
+               cmd += tmp;
+            }
+         }
+      }
+   }
+
+   cmd += "; GRID LAST;";
+
+   exit(cmd);
+
+}
