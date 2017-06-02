@@ -31,7 +31,7 @@
        "run changeVia --version - Shows the version number of the ULP being called.\n"
        "run changeVia --locate-ulp - Shows the location of the ULP being called (Useful for debug).\n"
 
-string VERSION = "0.6 alpha 1 (02-Jun-2017 09:30)";
+string VERSION = "0.7 alpha 1 (02-Jun-2017 14:07)";
 
 if (argv[1] == "--install") {
    exit("edit .brd; set context via 'Change Via...' 'run changeVia --context';");
@@ -53,6 +53,10 @@ if (argv[1] == "--install") {
    int viaListLength = 0;
    int selected = 0;
 
+   int startLayer = 0;
+   int endLayer = 0;
+   string viaLayers = "";
+
    real drillValue = 0.0;
    real diameterValue = 0.0;
 
@@ -69,7 +73,11 @@ if (argv[1] == "--install") {
             S.vias(V) {
                string viaInfo = "";
                int viaFound = 0;
-               sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
+               if (V.diameter[LAYER_VIAS] == 0.0) {
+                  sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\tauto\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[1]), u2mil(V.diameter[2]));
+               } else {
+                  sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\t%.3f mil\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[LAYER_VIAS]), u2mil(V.diameter[1]), u2mil(V.diameter[2]));
+               }
                for (int i=0 ; i<=viaListLength ; i++) {
                   if (viaList[i] == viaInfo) {
                      viaFound = 1;
@@ -84,7 +92,11 @@ if (argv[1] == "--install") {
                   if (ingroup(V)) {
                      string viaInfo = "";
                      int viaFound = 0;
-                     sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
+                     if (V.diameter[LAYER_VIAS] == 0.0) {
+                        sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\tauto\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[1]), u2mil(V.diameter[2]));
+                     } else {
+                        sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\t%.3f mil\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[LAYER_VIAS]), u2mil(V.diameter[1]), u2mil(V.diameter[2]));
+                     }
                      for (int i=0 ; i<=viaListLength ; i++) {
                         if (viaList[i] == viaInfo) {
                            selected = i;
@@ -98,16 +110,23 @@ if (argv[1] == "--install") {
 
       result = dlgDialog("List/Update Vias") { // Create the dialog
          // List all the vias in the design and extract the parameters of the selected
-         dlgListView("Layers\tShape\tDrill\tDiameter", viaList, selected) {
+         dlgListView("Layers\tShape\tDrill\tDiameter\tOuter Diameter\tInner Diameter", viaList, selected) {
          if (dlgSelectionChanged()) {
             board(B) {
                B.signals(S) {
                   S.vias(V) {
                      string viaInfo = "";
-                     sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
+                     if (V.diameter[LAYER_VIAS] == 0.0) {
+                        sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\tauto\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[1]), u2mil(V.diameter[2]));
+                     } else {
+                        sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\t%.3f mil\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[LAYER_VIAS]), u2mil(V.diameter[1]), u2mil(V.diameter[2]));
+                     }
                      if (viaList[selected] == viaInfo) {
+                        startLayer = V.start;
+                        endLayer = V.end;
+                        sprintf(viaLayers, "%d-%d", startLayer, endLayer);
                         drillValue = u2mil(V.drill);
-                        diameterValue = u2mil(V.diameter[V.start]);
+                        diameterValue = u2mil(V.diameter[LAYER_VIAS]);
                         shapeValue = V.shape[V.start];
                      }
                   }
@@ -119,16 +138,25 @@ if (argv[1] == "--install") {
          }
          // Enable updated parameters to be specified
          dlgHBoxLayout {
+            dlgLabel("Layers*:");
+            dlgStringEdit(viaLayers);
+         }
+         dlgHBoxLayout {
             dlgLabel("Drill Size:");
             dlgRealEdit(drillValue, 0.0, 9999.99);
+            dlgLabel("mil");
          }
          dlgHBoxLayout {
             dlgLabel("Pad diameter:");
             dlgRealEdit(diameterValue, 0.0, 9999.99);
+            dlgLabel("mil");
          }
          dlgHBoxLayout {
             dlgLabel("Pad shape:");
             dlgComboBox(shapeList, shapeValue) {}
+         }
+         dlgHBoxLayout {
+            dlgLabel("* Read Only. Changing the value will have no effect.");
          }
 
          // Add the usual dialog buttons to proceed (OK) or abandon changes (Cancel)
@@ -156,7 +184,11 @@ if (argv[1] == "--install") {
                   }
                } else {
                   string viaInfo = "";
-                  sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
+                  if (V.diameter[LAYER_VIAS] == 0.0) {
+                     sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\tauto\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[1]), u2mil(V.diameter[2]));
+                  } else {
+                     sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\t%.3f mil\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[LAYER_VIAS]), u2mil(V.diameter[1]), u2mil(V.diameter[2]));
+                  }
                   if (viaList[selected] == viaInfo) {
                      sprintf(tmp, "(%f %f) ", u2mil(V.x), u2mil(V.y));
                      pointsList += tmp;
