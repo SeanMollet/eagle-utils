@@ -31,7 +31,7 @@
        "run changeVia --version - Shows the version number of the ULP being called.\n"
        "run changeVia --locate-ulp - Shows the location of the ULP being called (Useful for debug).\n"
 
-string VERSION = "0.5 alpha 1 (02-Jun-2017 00:05)";
+string VERSION = "0.6 alpha 1 (02-Jun-2017 09:30)";
 
 if (argv[1] == "--install") {
    exit("edit .brd; set context via 'Change Via...' 'run changeVia --context';");
@@ -46,8 +46,8 @@ if (argv[1] == "--install") {
 
    // Define variables
 
-   string cmd="";
-   int result;
+   string cmd = "";
+   int result = -1;
 
    string viaList[];
    int viaListLength = 0;
@@ -57,7 +57,7 @@ if (argv[1] == "--install") {
    real diameterValue = 0.0;
 
    string shapeList[] = {"Square", "Round", "Octagon"};
-   int shapeValue;
+   int shapeValue = 0;
 
    string pointsList = "";
 
@@ -77,6 +77,20 @@ if (argv[1] == "--install") {
                }
                if (viaFound == 0) {
                   viaList[viaListLength++] = viaInfo;
+               }
+            }
+            if (argv[1] == "--context") {
+               S.vias(V) {
+                  if (ingroup(V)) {
+                     string viaInfo = "";
+                     int viaFound = 0;
+                     sprintf(viaInfo, "%d-%d\t%s\t%.3f mil\t%.3f mil", V.start, V.end, shapeList[V.shape[V.start]], u2mil(V.drill), u2mil(V.diameter[V.start]));
+                     for (int i=0 ; i<=viaListLength ; i++) {
+                        if (viaList[i] == viaInfo) {
+                           selected = i;
+                        }
+                     }
+                  }
                }
             }
          }
@@ -121,7 +135,8 @@ if (argv[1] == "--install") {
          dlgHBoxLayout {
             dlgStretch(1);
             dlgPushButton("-Cancel") {
-                  if (dlgMessageBox("Are you sure?", "Yes", "No") == 0) dlgReject(-1);
+               //if (dlgMessageBox("Are you sure?", "Yes", "No") == 0) dlgReject(-1);
+               dlgReject(-1);
             }
             dlgPushButton("+&OK") dlgAccept(0);
          }
