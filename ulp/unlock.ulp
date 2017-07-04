@@ -49,7 +49,7 @@ if (argv[1] == "--version"){
    while (argv[i] != "") {
       board(B) {
          B.elements(E) {
-            if (E.name == argv[i]) {
+            if (E.name == strupr(argv[i])) {
                sprintf(tmp, " (S %f %f)", u2mil(E.x), u2mil(E.y));
                cmd+=tmp;
             }
