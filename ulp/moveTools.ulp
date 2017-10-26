@@ -52,13 +52,13 @@ real yval = 0.0;
 
 // Helper functions
 
-string dtostr (int value) {
+string ltostr (int value) {
    string strValue = "";
    sprintf (strValue, "%d", value);
    return strValue;
 }
 
-string ltostr (real value) {
+string dtostr (real value) {
    string strValue = "";
    sprintf (strValue, "%f", value);
    return strValue;
@@ -98,7 +98,6 @@ int setMoveValues () {
 }
 
 int moveToolsUI () {
-   int sts = -1; // Dummy return value. Not currently used
 
    getMoveValues();
 
@@ -130,18 +129,18 @@ int moveToolsUI () {
          dlgHBoxLayout {
             dlgPushButton("Help...");
             dlgStretch(1);
-            dlgPushButton("Cancel") dlgReject();
+            dlgPushButton("Cancel") dlgReject(0);
             dlgPushButton("+OK") {
                xval = strtod(xinput);
                yval = strtod(yinput);
                setMoveValues();
-               dlgAccept();
+               dlgAccept(1);
             }
          }
       }
    };
 
-   return sts;
+   return result;
 }
 
 // Main code
@@ -187,7 +186,7 @@ if (board) {
 
    // Define variables
 
-   string cmd = "GRID mil; ";
+   string cmd = "GRID FINEST; ";
    string tmp = "";
 
    board(B) {
@@ -213,18 +212,23 @@ if (board) {
                   name = E.name;
                }
             }
+            int result = 1; // Default to running the commands if no UI
             if (gui) {
-               moveToolsUI();
+               result = moveToolsUI();
             } else {
                getMoveValues();
             }
-            sprintf(tmp, "MOVE %s (%s%f%s %f%s)", name, relative, xval, gridUnits[xunit], yval, gridUnits[yunit]);
-            cmd += tmp;
-            if (setMark) {
-               sprintf(tmp, "; MARK (%s%f %f)", relative, xval, yval);
+            if (result == 0) {
+               cmd = "";
+            } else {
+               sprintf(tmp, "MOVE %s (%s%f%s %f%s)", name, relative, xval, gridUnits[xunit], yval, gridUnits[yunit]);
                cmd += tmp;
+               if (setMark) {
+                  sprintf(tmp, "; MARK (%s%f%s %f%s)", relative, xval, gridUnits[xunit], yval, gridUnits[yunit]);
+                  cmd += tmp;
+               }
+               cmd += "; GRID LAST; ";
             }
-            cmd += "; GRID LAST; ";
             break;
 
          default:
