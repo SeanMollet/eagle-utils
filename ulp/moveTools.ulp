@@ -1,0 +1,250 @@
+/*
+ *   Title : moveTools.ulp
+ * Version : 0.1 alpha 1
+ *    Date : 26-Oct-2017
+ *  Author : Rachael Peterson
+ *
+ * Purpose : Adds context menu and dialogs for simplifying complex placement
+ *           requirements.
+ *
+ * License : Creative Commons Attribution-ShareAlike 4.0 International
+ *         : CC BY-SA 4.0
+ *         : https://creativecommons.org/licenses/by-sa/4.0/
+ *
+ *******************************************************************************
+ *                           (c)Copyright 2017                                 *
+ *******************************************************************************
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
+#usage "en: Provices enhances move tools.\n"
+       "run moveTools --install - Installs the utility to the board context menus.\n"
+       "run moveTools --version - Shows the version number of the ULP being called.\n"
+       "run moveTools --locate-ulp - Shows the location of the ULP being called (Useful for debug).\n"
+       "run moveTools --set-mark - Sets a mark at the current components location.\n"
+       "run moveTools --move - Moves to the absolute position specified.\n"
+       "run moveTools --move-again - Moves relative to the current position.\n"
+
+// Global variables
+
+int moveMode = 0;
+string name = "";
+string relative = "";
+int setMark = 0;
+string displayUnits[] = {"Microns", "Millimeters", "Mils", "Inches"};
+string gridUnits[] = {"MIC", "MM", "MIL", "IN"};
+int xunit = 2;
+int yunit = 2;
+string xinput = "0";
+real xval = 0.0;
+string yinput = "0";
+real yval = 0.0;
+
+// Helper functions
+
+string dtostr (int value) {
+   string strValue = "";
+   sprintf (strValue, "%d", value);
+   return strValue;
+}
+
+string ltostr (real value) {
+   string strValue = "";
+   sprintf (strValue, "%f", value);
+   return strValue;
+}
+
+int getMoveValues () {
+   int sts = -1; // Dummy return value. Not currently used
+
+   // Load the move parameters
+   moveMode = strtol(cfgget("ULP:moveTools.moveMode", "1"));
+   if (moveMode == 2) {
+      relative = "R ";
+   }
+   setMark = strtol(cfgget("ULP:moveTools.setMark", "0"));
+   xval = strtod(cfgget("ULP:moveTools.xval", "0"));
+   xinput = dtostr(xval);
+   xunit = strtol(cfgget("ULP:moveTools.xunit", "2"));
+   yval = strtod(cfgget("ULP:moveTools.yval", "0"));
+   yinput = dtostr(yval);
+   yunit = strtol(cfgget("ULP:moveTools.yunit", "2"));
+
+   return sts;
+}
+
+int setMoveValues () {
+   int sts = -1; // Dummy return value. Not currently used
+
+   // Store the move parameters
+   cfgset("ULP:moveTools.moveMode", ltostr(moveMode));
+   cfgset("ULP:moveTools.setMark", ltostr(setMark));
+   cfgset("ULP:moveTools.xval", dtostr(xval));
+   cfgset("ULP:moveTools.xunit", ltostr(xunit));
+   cfgset("ULP:moveTools.yval", dtostr(yval));
+   cfgset("ULP:moveTools.yunit", ltostr(yunit));
+
+   return sts;
+}
+
+int moveToolsUI () {
+   int sts = -1; // Dummy return value. Not currently used
+
+   getMoveValues();
+
+   int result = dlgDialog ("Set Move Parameters...") {
+      dlgVBoxLayout {
+         dlgGroup ("Move Mode") {
+            dlgRadioButton("Absolute", moveMode) {
+               relative = ""; // Absolute position so not relative
+               dlgRedisplay();
+            }
+            dlgRadioButton("Relative to self", moveMode) {
+               relative = ""; // Even though it's relative it's still a regular move
+               dlgRedisplay();
+            }
+            dlgRadioButton("Relative to mark", moveMode) {
+               relative = "R"; // We only use this for relative to mark moves
+               dlgRedisplay();
+            }
+         }
+         dlgCheckBox("Update mark to new location", setMark);
+         dlgHBoxLayout {
+            dlgLabel("X:");
+            dlgStringEdit(xinput);
+            dlgComboBox(displayUnits, xunit);
+            dlgLabel("Y:");
+            dlgStringEdit(yinput);
+            dlgComboBox(displayUnits, yunit);
+         }
+         dlgHBoxLayout {
+            dlgPushButton("Help...");
+            dlgStretch(1);
+            dlgPushButton("Cancel") dlgReject();
+            dlgPushButton("+OK") {
+               xval = strtod(xinput);
+               yval = strtod(yinput);
+               setMoveValues();
+               dlgAccept();
+            }
+         }
+      }
+   };
+
+   return sts;
+}
+
+// Main code
+
+string VERSION = "0.1 alpha 1 (26-Oct-2017 12:40)";
+
+enum {NONE, SETMARK, MOVE, MOVEAGAIN};
+int mode = NONE;
+
+for (int i = 1 ; i < argc ; i++) {
+
+   string argument = "";
+   if (argc > 0) {
+      argument = argv[i];
+      if (argument == "--install") {
+         exit("edit .brd; set context element 'Set Mark...' 'run moveTools --set-mark';"
+              "           set context element 'Move To...' 'run moveTools --move';"
+              "           set context element 'Move Again...' 'run moveTools --move-again';");
+      } else if (argument == "--version") {
+         string tmp = "ULP Version: " + VERSION;
+         dlgMessageBox(tmp);
+         exit(0);
+      } else if (argument == "--locate-ulp") {
+         dlgMessageBox(argv[0]);
+         exit(0);
+      } else if (argument == "--set-mark") {
+		   mode = SETMARK;
+      } else if (argument == "--move") {
+		   mode = MOVE;
+      } else if (argument == "--move-again") {
+		   mode = MOVEAGAIN;
+      } else {
+         // Do nothing at the moment
+         dlgMessageBox("ERROR: Incorrect parameter(s) specified. See the usage instructions for further information.");
+	   }
+   }
+}
+
+if (board) {
+
+   // Define variables
+
+   string cmd = "GRID mil; ";
+   string tmp = "";
+
+   board(B) {
+      switch (mode) {
+
+         case NONE:
+            dlgMessageBox("ERROR: Missing parameter(s). See the usage instructions for further information.");
+            break;
+
+         case SETMARK:
+            B.elements(E){
+               if (ingroup(E)) {
+                  sprintf(tmp, "MARK (%f %f)", u2mil(E.x), u2mil(E.y));
+                  cmd += tmp;
+               }
+            }
+            cmd += "; GRID LAST; ";
+            break;
+
+         case MOVE:
+            B.elements(E) {
+               if (ingroup(E)) {
+                  name = E.name;
+               }
+            }
+            moveToolsUI();
+            sprintf(tmp, "MOVE %s (%s%f%s %f%s)", name, relative, xval, gridUnits[xunit], yval, gridUnits[yunit]);
+            cmd += tmp;
+            if (setMark) {
+               sprintf(tmp, "; MARK (%s%f %f)", relative, xval, yval);
+               cmd += tmp;
+            }
+            cmd += "; GRID LAST; ";
+            break;
+
+         case MOVEAGAIN:
+            B.elements(E) {
+               if (ingroup(E)) {
+                  name = E.name;
+               }
+            }
+            getMoveValues();
+            sprintf(tmp, "MOVE %s (%s%f%s %f%s)", name, relative, xval, gridUnits[xunit], yval, gridUnits[yunit]);
+            cmd += tmp;
+            if (setMark) {
+               sprintf(tmp, "; MARK (%s%f %f)", relative, xval, yval);
+               cmd += tmp;
+            }
+            cmd += "; GRID LAST;";
+            break;
+
+         default:
+            dlgMessageBox("ERROR: An unspecified error has occurred. See the usage instructions for further information.");
+            break;
+
+      }
+   }
+
+   exit(cmd);
+
+} else {
+   dlgMessageBox("ERROR: This ULP is intended to be run in the board view.");
+}
