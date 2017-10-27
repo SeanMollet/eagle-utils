@@ -33,7 +33,7 @@
        "run moveTools --locate-ulp - Shows the location of the ULP being called (Useful for debug).\n"
        "run moveTools --set-mark - Sets a mark at the current components location.\n"
        "run moveTools --move - Moves to the absolute position specified.\n"
-       "run moveTools --move-again - Moves relative to the current position.\n"
+       "run moveTools --move-again - Performs the last used move operation again.\n"
 
 // Global variables
 
