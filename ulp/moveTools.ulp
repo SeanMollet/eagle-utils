@@ -170,9 +170,11 @@ for (int i = 1 ; i < argc ; i++) {
       } else if (argument == "--set-mark") {
 		   mode = SETMARK;
       } else if (argument == "--move") {
+         name = argv[++i];
 		   mode = MOVE;
          gui = 1;
       } else if (argument == "--move-again") {
+         name = argv[++i];
 		   mode = MOVE;
          gui = 0;
       } else {
@@ -207,9 +209,11 @@ if (board) {
             break;
 
          case MOVE:
-            B.elements(E) {
-               if (ingroup(E)) {
-                  name = E.name;
+            if (!name) {
+               B.elements(E) {
+                  if (ingroup(E)) {
+                     name = E.name;
+                  }
                }
             }
             int result = 1; // Default to running the commands if no UI
