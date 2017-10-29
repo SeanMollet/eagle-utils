@@ -72,9 +72,6 @@ int getMoveValues () {
 
    // Load the move parameters
    moveMode = strtol(cfgget("ULP:moveTools.moveMode", "1"));
-   if (moveMode == 2) {
-      relative = "R ";
-   }
    setMark = strtol(cfgget("ULP:moveTools.setMark", "0"));
    xval = strtod(cfgget("ULP:moveTools.xval", "0"));
    xinput = dtostr(xval);
@@ -300,6 +297,9 @@ if (board) {
             if (result == 0) {
                cmd = "";
             } else {
+               if (moveMode == 2) {
+                  relative = "R ";
+               }
                sprintf(tmp, "MOVE %s (%s%f%s %f%s)", name, relative, xval, gridUnits[xunit], yval, gridUnits[yunit]);
                cmd += tmp;
                if (setMark) {
@@ -364,6 +364,9 @@ if (board) {
             if (result == 0) {
                cmd = "";
             } else {
+               if (moveMode == 2) {
+                  relative = "R ";
+               }
                sprintf(tmp, "MOVE %s (%s%f %f)", name, relative, xval, yval);
                cmd += tmp;
                if (setMark) {
