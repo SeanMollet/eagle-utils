@@ -139,6 +139,39 @@ int setMoveValues () {
 }
 
 /*
+ *    Function : helpUI()
+ * Description : Create the help dialog
+ */
+
+int helpUI () {
+
+   int result = dlgDialog ("Help") {
+      dlgGroup("") {
+         dlgTabWidget {
+            dlgTabPage ("About moveTools") {
+
+            }
+            dlgTabPage ("Command Line") {
+
+            }
+            dlgTabPage ("Usage Examples") {
+
+            }
+         }
+      }
+      dlgHBoxLayout {
+         dlgStretch(1);
+         dlgPushButton("+OK") {
+            dlgAccept(1);
+         }
+         dlgStretch(1);
+      }
+   };
+
+   return result;
+}
+
+/*
  *    Function : brdMoveUI()
  * Description : Create the user interface for the board editor
  */
@@ -179,7 +212,9 @@ int brdMoveUI () {
          }
       }
       dlgHBoxLayout {
-         dlgPushButton("Help...");
+         dlgPushButton("Help...") {
+            helpUI();
+         }
          dlgStretch(1);
          dlgPushButton("Cancel") dlgReject(0);
          dlgPushButton("+OK") {
@@ -243,7 +278,9 @@ int schMoveUI () {
 
       }
       dlgHBoxLayout {
-         dlgPushButton("Help...");
+         dlgPushButton("Help...") {
+            helpUI();
+         }
          dlgStretch(1);
          dlgPushButton("Cancel") dlgReject(0);
          dlgPushButton("+OK") {
@@ -285,6 +322,9 @@ for (int i = 1 ; i < argc ; i++) {
          exit(0);
       } else if (argument[0] == "--locate-ulp") {
          dlgMessageBox(argv[0]);
+         exit(0);
+      } else if (argument[0] == "--help") {
+         helpUI();
          exit(0);
       } else if (argument[0] == "--set-mark") {
 		   mode = SETMARK;
