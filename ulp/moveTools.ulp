@@ -279,35 +279,35 @@ int gui = 0;
 
 for (int i = 1 ; i < argc ; i++) {
 
-   string argument = "";
+   string argument[] = {""};
    if (argc > 0) {
-      argument = argv[i];
-      if (argument == "--install") {
+      int numParams = strsplit(argument, argv[i], '=') - 1;
+      if (argument[0] == "--install") {
          exit("edit .brd; set context element 'Set Mark...' 'run moveTools --set-mark';"
               "           set context element 'Move To...' 'run moveTools --move';"
               "           set context element 'Move Again...' 'run moveTools --move-again';");
-      } else if (argument == "--version") {
+      } else if (argument[0] == "--version") {
          string tmp = "ULP Version: " + VERSION;
          dlgMessageBox(tmp);
          exit(0);
-      } else if (argument == "--locate-ulp") {
+      } else if (argument[0] == "--locate-ulp") {
          dlgMessageBox(argv[0]);
          exit(0);
-      } else if (argument == "--set-mark") {
+      } else if (argument[0] == "--set-mark") {
 		   mode = SETMARK;
-      } else if (argument == "--move") {
-         if (argv[i+1] != "--group") {
-            name = argv[++i];
+      } else if (argument[0] == "--move") {
+         if (numParams) {
+            name = argument[1];
          }
 		   mode = MOVE;
          gui = 1;
-      } else if (argument == "--move-again") {
-         if (argv[i+1] != "--group") {
-            name = argv[++i];
+      } else if (argument[0] == "--move-again") {
+         if (numParams) {
+            name = argument[1];
          }
 		   mode = MOVE;
          gui = 0;
-      } else if (argument == "--group") {
+      } else if (argument[0] == "--group") {
          group = 1;
       } else {
          // Do nothing at the moment
