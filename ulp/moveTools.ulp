@@ -148,28 +148,30 @@ int brdMoveUI () {
    getMoveValues();
 
    int result = dlgDialog ("Set Move Parameters...") {
-      dlgGroup ("Move Mode") {
-         dlgRadioButton("Absolute", moveMode) {
-            relative = ""; // Absolute position so not relative
-            dlgRedisplay();
+      dlgGroup("") {
+         dlgGroup ("Move Mode") {
+            dlgRadioButton("Absolute", moveMode) {
+               relative = ""; // Absolute position so not relative
+               dlgRedisplay();
+            }
+            dlgRadioButton("Relative to self", moveMode) {
+               relative = ""; // Even though it's relative it's still a regular move
+               dlgRedisplay();
+            }
+            dlgRadioButton("Relative to mark", moveMode) {
+               relative = "R"; // We only use this for relative to mark moves
+               dlgRedisplay();
+            }
          }
-         dlgRadioButton("Relative to self", moveMode) {
-            relative = ""; // Even though it's relative it's still a regular move
-            dlgRedisplay();
+         dlgHBoxLayout {
+            dlgLabel("X:");
+            dlgStringEdit(xinput);
+            dlgComboBox(displayUnits, xunit);
+            dlgLabel("Y:");
+            dlgStringEdit(yinput);
+            dlgComboBox(displayUnits, yunit);
          }
-         dlgRadioButton("Relative to mark", moveMode) {
-            relative = "R"; // We only use this for relative to mark moves
-            dlgRedisplay();
-         }
-      }
-      dlgCheckBox("Update mark to new location", setMark);
-      dlgHBoxLayout {
-         dlgLabel("X:");
-         dlgStringEdit(xinput);
-         dlgComboBox(displayUnits, xunit);
-         dlgLabel("Y:");
-         dlgStringEdit(yinput);
-         dlgComboBox(displayUnits, yunit);
+         dlgCheckBox("Update mark to new location", setMark);
       }
       dlgHBoxLayout {
          dlgPushButton("Help...");
