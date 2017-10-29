@@ -39,7 +39,6 @@
 
 int moveMode = 0;
 string name = "";
-string relative = "";
 int group = 0;
 int setMark = 0;
 string displayUnits[] = {"Microns", "Millimeters", "Mils", "Inches"};
@@ -153,15 +152,12 @@ int brdMoveUI () {
          if (!group) {
             dlgGroup ("Move Mode") {
                dlgRadioButton("Absolute", moveMode) {
-                  relative = ""; // Absolute position so not relative
                   dlgRedisplay();
                }
                dlgRadioButton("Relative to self", moveMode) {
-                  relative = ""; // Even though it's relative it's still a regular move
                   dlgRedisplay();
                }
                dlgRadioButton("Relative to mark", moveMode) {
-                  relative = "R"; // We only use this for relative to mark moves
                   dlgRedisplay();
                }
             }
@@ -217,15 +213,12 @@ int schMoveUI () {
          if (!group) {
             dlgGroup ("Move Mode") {
                dlgRadioButton("Absolute", moveMode) {
-                  relative = ""; // Absolute position so not relative
                   dlgRedisplay();
                }
                dlgRadioButton("Relative to self", moveMode) {
-                  relative = ""; // Even though it's relative it's still a regular move
                   dlgRedisplay();
                }
                dlgRadioButton("Relative to mark", moveMode) {
-                  relative = "R"; // We only use this for relative to mark moves
                   dlgRedisplay();
                }
             }
@@ -323,6 +316,9 @@ if (board) {
    string cmd = "GRID FINEST; ";
    string tmp = "";
 
+   real currentX = 0.0;
+   real currentY = 0.0;
+
    board(B) {
       switch (mode) {
 
@@ -333,7 +329,7 @@ if (board) {
          case SETMARK:
             B.elements(E){
                if (ingroup(E)) {
-                  sprintf(tmp, "MARK (%f %f)", u2mil(E.x), u2mil(E.y));
+                  sprintf(tmp, "MARK (%fMIL %fMIL)", u2mil(E.x), u2mil(E.y));
                   cmd += tmp;
                }
             }
@@ -341,11 +337,13 @@ if (board) {
             break;
 
          case MOVE:
-            if (!name) {
-               B.elements(E) {
-                  if (ingroup(E)) {
+            B.elements(E) {
+               if (ingroup(E)) {
+                  if (!name) {
                      name = E.name;
                   }
+                  currentX = E.x;
+                  currentY = E.y;
                }
             }
             int result = 1; // Default to running the commands if no UI
@@ -358,14 +356,27 @@ if (board) {
                cmd = "";
             } else {
                if (!group) {
-                  if (moveMode == 2) {
-                     relative = "R ";
-                  }
-                  sprintf(tmp, "MOVE %s (%s%f%s %f%s)", name, relative, xval, gridUnits[xunit], yval, gridUnits[yunit]);
-                  cmd += tmp;
-                  if (setMark) {
-                     sprintf(tmp, "; MARK (%s%f%s %f%s)", relative, xval, gridUnits[xunit], yval, gridUnits[yunit]);
+                  if (moveMode == 0) {
+                     sprintf(tmp, "MOVE %s (%f%s %f%s)", name, xval, gridUnits[xunit], yval, gridUnits[yunit]);
                      cmd += tmp;
+                     if (setMark) {
+                        sprintf(tmp, "; MARK (%f%s %f%s)", xval, gridUnits[xunit], yval, gridUnits[yunit]);
+                        cmd += tmp;
+                     }
+                  } else if (moveMode == 1) {
+                     sprintf(tmp, "MOVE %s (%f%s %f%s)", name, xval, gridUnits[xunit], yval, gridUnits[yunit]);
+                     cmd += tmp;
+                     if (setMark) {
+                        sprintf(tmp, "; MARK (%f%s %f%s)", xval, gridUnits[xunit], yval, gridUnits[yunit]);
+                        cmd += tmp;
+                     }
+                  } else if (moveMode == 2) {
+                     sprintf(tmp, "MOVE %s (R%f%s %f%s)", name, xval, gridUnits[xunit], yval, gridUnits[yunit]);
+                     cmd += tmp;
+                     if (setMark) {
+                        sprintf(tmp, "; MARK (R%f%s %f%s)", xval, gridUnits[xunit], yval, gridUnits[yunit]);
+                        cmd += tmp;
+                     }
                   }
                } else {
                   sprintf(tmp, "MOVE (>0 0) (%f%s %f%s)", xval, gridUnits[xunit], yval, gridUnits[yunit]);
@@ -401,7 +412,7 @@ if (board) {
          case SETMARK:
             SH.instances(I){
                if (ingroup(I)) {
-                  sprintf(tmp, "MARK (%f %f)", u2mil(I.x), u2mil(I.y));
+                  sprintf(tmp, "MARK (%fMIL %fMIL)", u2mil(I.x), u2mil(I.y));
                   cmd += tmp;
                }
             }
@@ -409,9 +420,9 @@ if (board) {
             break;
 
          case MOVE:
-            if (!name) {
-               SH.instances(I) {
-                  if (ingroup(I)) {
+            SH.instances(I) {
+               if (ingroup(I)) {
+                  if (!name) {
                      name = I.name;
                   }
                }
@@ -426,14 +437,27 @@ if (board) {
                cmd = "";
             } else {
                if (!group) {
-                  if (moveMode == 2) {
-                     relative = "R ";
-                  }
-                  sprintf(tmp, "MOVE %s (%s%f %f)", name, relative, xval, yval);
-                  cmd += tmp;
-                  if (setMark) {
-                     sprintf(tmp, "; MARK (%s%f %f)", relative, xval, yval);
+                  if (moveMode == 0) {
+                     sprintf(tmp, "MOVE %s (%f %f)", name, xval, yval);
                      cmd += tmp;
+                     if (setMark) {
+                        sprintf(tmp, "; MARK (%f %f)", xval, yval);
+                        cmd += tmp;
+                     }
+                  } else if (moveMode == 1) {
+                     sprintf(tmp, "MOVE %s (%f %f)", name, xval, yval);
+                     cmd += tmp;
+                     if (setMark) {
+                        sprintf(tmp, "; MARK (%f %f)", xval, yval);
+                        cmd += tmp;
+                     }
+                  } else if (moveMode == 2) {
+                     sprintf(tmp, "MOVE %s (R%f %f)", name, xval, yval);
+                     cmd += tmp;
+                     if (setMark) {
+                        sprintf(tmp, "; MARK (R%f %f)", xval, yval);
+                        cmd += tmp;
+                     }
                   }
                } else {
                   sprintf(tmp, "MOVE (>0 0) (%f %f)", xval, yval);
