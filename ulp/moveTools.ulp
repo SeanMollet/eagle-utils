@@ -71,14 +71,37 @@ int getMoveValues () {
    int sts = -1; // Dummy return value. Not currently used
 
    // Load the move parameters
-   moveMode = strtol(cfgget("ULP:moveTools.moveMode", "1"));
-   setMark = strtol(cfgget("ULP:moveTools.setMark", "0"));
-   xval = strtod(cfgget("ULP:moveTools.xval", "0"));
-   xinput = dtostr(xval);
-   xunit = strtol(cfgget("ULP:moveTools.xunit", "2"));
-   yval = strtod(cfgget("ULP:moveTools.yval", "0"));
-   yinput = dtostr(yval);
-   yunit = strtol(cfgget("ULP:moveTools.yunit", "2"));
+   if (board) {
+      moveMode = strtol(cfgget("ULP:moveTools.brd.moveMode", "1"));
+      setMark = strtol(cfgget("ULP:moveTools.brd.setMark", "0"));
+      xval = strtod(cfgget("ULP:moveTools.brd.xval", "0"));
+      xinput = dtostr(xval);
+      xunit = strtol(cfgget("ULP:moveTools.brd.xunit", "2"));
+      yval = strtod(cfgget("ULP:moveTools.brd.yval", "0"));
+      yinput = dtostr(yval);
+      yunit = strtol(cfgget("ULP:moveTools.brd.yunit", "2"));
+   } else if (schematic) {
+      moveMode = strtol(cfgget("ULP:moveTools.sch.moveMode", "1"));
+      setMark = strtol(cfgget("ULP:moveTools.sch.setMark", "0"));
+      xval = strtod(cfgget("ULP:moveTools.sch.xval", "0"));
+      xinput = dtostr(xval);
+      xunit = strtol(cfgget("ULP:moveTools.sch.xunit", "2"));
+      yval = strtod(cfgget("ULP:moveTools.sch.yval", "0"));
+      yinput = dtostr(yval);
+      yunit = strtol(cfgget("ULP:moveTools.sch.yunit", "2"));
+   } else if (library) {
+      moveMode = strtol(cfgget("ULP:moveTools.lbr.moveMode", "1"));
+      setMark = strtol(cfgget("ULP:moveTools.lbr.setMark", "0"));
+      xval = strtod(cfgget("ULP:moveTools.lbr.xval", "0"));
+      xinput = dtostr(xval);
+      xunit = strtol(cfgget("ULP:moveTools.lbr.xunit", "2"));
+      yval = strtod(cfgget("ULP:moveTools.lbr.yval", "0"));
+      yinput = dtostr(yval);
+      yunit = strtol(cfgget("ULP:moveTools.lbr.yunit", "2"));
+   } else {
+      dlgMessageBox("ERROR: Unsupported editor detected");
+      exit(-1);
+   }
 
    return sts;
 }
@@ -87,12 +110,30 @@ int setMoveValues () {
    int sts = -1; // Dummy return value. Not currently used
 
    // Store the move parameters
-   cfgset("ULP:moveTools.moveMode", ltostr(moveMode));
-   cfgset("ULP:moveTools.setMark", ltostr(setMark));
-   cfgset("ULP:moveTools.xval", dtostr(xval));
-   cfgset("ULP:moveTools.xunit", ltostr(xunit));
-   cfgset("ULP:moveTools.yval", dtostr(yval));
-   cfgset("ULP:moveTools.yunit", ltostr(yunit));
+   if (board) {
+      cfgset("ULP:moveTools.brd.moveMode", ltostr(moveMode));
+      cfgset("ULP:moveTools.brd.setMark", ltostr(setMark));
+      cfgset("ULP:moveTools.brd.xval", dtostr(xval));
+      cfgset("ULP:moveTools.brd.xunit", ltostr(xunit));
+      cfgset("ULP:moveTools.brd.yval", dtostr(yval));
+      cfgset("ULP:moveTools.brd.yunit", ltostr(yunit));
+   } else if (schematic) {
+      cfgset("ULP:moveTools.sch.moveMode", ltostr(moveMode));
+      cfgset("ULP:moveTools.sch.setMark", ltostr(setMark));
+      cfgset("ULP:moveTools.sch.xval", dtostr(xval));
+      cfgset("ULP:moveTools.sch.xunit", ltostr(xunit));
+      cfgset("ULP:moveTools.sch.yval", dtostr(yval));
+      cfgset("ULP:moveTools.sch.yunit", ltostr(yunit));
+   } else if (library) {
+      cfgset("ULP:moveTools.lbr.moveMode", ltostr(moveMode));
+      cfgset("ULP:moveTools.lbr.setMark", ltostr(setMark));
+      cfgset("ULP:moveTools.lbr.xval", dtostr(xval));
+      cfgset("ULP:moveTools.lbr.xunit", ltostr(xunit));
+      cfgset("ULP:moveTools.lbr.yval", dtostr(yval));
+      cfgset("ULP:moveTools.lbr.yunit", ltostr(yunit));
+   } else {
+      dlgMessageBox("ERROR: Unsupported editor detected");
+   }
 
    return sts;
 }
