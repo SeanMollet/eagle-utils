@@ -40,6 +40,7 @@
 int moveMode = 0;
 string name = "";
 string relative = "";
+int group = 0;
 int setMark = 0;
 string displayUnits[] = {"Microns", "Millimeters", "Mils", "Inches"};
 string gridUnits[] = {"MIC", "MM", "MIL", "IN"};
@@ -149,29 +150,37 @@ int brdMoveUI () {
 
    int result = dlgDialog ("Set Move Parameters...") {
       dlgGroup("") {
-         dlgGroup ("Move Mode") {
-            dlgRadioButton("Absolute", moveMode) {
-               relative = ""; // Absolute position so not relative
-               dlgRedisplay();
-            }
-            dlgRadioButton("Relative to self", moveMode) {
-               relative = ""; // Even though it's relative it's still a regular move
-               dlgRedisplay();
-            }
-            dlgRadioButton("Relative to mark", moveMode) {
-               relative = "R"; // We only use this for relative to mark moves
-               dlgRedisplay();
+         if (!group) {
+            dlgGroup ("Move Mode") {
+               dlgRadioButton("Absolute", moveMode) {
+                  relative = ""; // Absolute position so not relative
+                  dlgRedisplay();
+               }
+               dlgRadioButton("Relative to self", moveMode) {
+                  relative = ""; // Even though it's relative it's still a regular move
+                  dlgRedisplay();
+               }
+               dlgRadioButton("Relative to mark", moveMode) {
+                  relative = "R"; // We only use this for relative to mark moves
+                  dlgRedisplay();
+               }
             }
          }
-         dlgHBoxLayout {
-            dlgLabel("X:");
-            dlgStringEdit(xinput);
-            dlgComboBox(displayUnits, xunit);
-            dlgLabel("Y:");
-            dlgStringEdit(yinput);
-            dlgComboBox(displayUnits, yunit);
+         dlgGroup("Set Position") {
+            dlgHBoxLayout {
+               dlgLabel("X:");
+               dlgStringEdit(xinput);
+               dlgComboBox(displayUnits, xunit);
+               dlgLabel("Y:");
+               dlgStringEdit(yinput);
+               dlgComboBox(displayUnits, yunit);
+            }
+            dlgHBoxLayout {
+               if (!group) {
+                  dlgCheckBox("Update mark to new location", setMark);
+               }
+            }
          }
-         dlgCheckBox("Update mark to new location", setMark);
       }
       dlgHBoxLayout {
          dlgPushButton("Help...");
@@ -205,18 +214,20 @@ int schMoveUI () {
 
    int result = dlgDialog ("Set Move Parameters...") {
       dlgGroup("") {
-         dlgGroup ("Move Mode") {
-            dlgRadioButton("Absolute", moveMode) {
-               relative = ""; // Absolute position so not relative
-               dlgRedisplay();
-            }
-            dlgRadioButton("Relative to self", moveMode) {
-               relative = ""; // Even though it's relative it's still a regular move
-               dlgRedisplay();
-            }
-            dlgRadioButton("Relative to mark", moveMode) {
-               relative = "R"; // We only use this for relative to mark moves
-               dlgRedisplay();
+         if (!group) {
+            dlgGroup ("Move Mode") {
+               dlgRadioButton("Absolute", moveMode) {
+                  relative = ""; // Absolute position so not relative
+                  dlgRedisplay();
+               }
+               dlgRadioButton("Relative to self", moveMode) {
+                  relative = ""; // Even though it's relative it's still a regular move
+                  dlgRedisplay();
+               }
+               dlgRadioButton("Relative to mark", moveMode) {
+                  relative = "R"; // We only use this for relative to mark moves
+                  dlgRedisplay();
+               }
             }
          }
          dlgGroup("Set Position") {
@@ -230,7 +241,9 @@ int schMoveUI () {
                dlgStretch(1);
             }
             dlgHBoxLayout {
-               dlgCheckBox("Update mark to new location", setMark);
+               if (!group) {
+                  dlgCheckBox("Update mark to new location", setMark);
+               }
             }
          }
          dlgLabel("NOTE: Schematic grid of 0.1\" enforced by this utility.");
@@ -258,9 +271,9 @@ int schMoveUI () {
 
 // Main code
 
-string VERSION = "0.1 alpha 1 (26-Oct-2017 12:40)";
+string VERSION = "0.5 alpha 1 (29-Oct-2017 17:36)";
 
-enum {NONE, SETMARK, MOVE, GROUP};
+enum {NONE, SETMARK, MOVE};
 int mode = NONE;
 int gui = 0;
 
@@ -283,15 +296,19 @@ for (int i = 1 ; i < argc ; i++) {
       } else if (argument == "--set-mark") {
 		   mode = SETMARK;
       } else if (argument == "--move") {
-         name = argv[++i];
+         if (argv[i+1] != "--group") {
+            name = argv[++i];
+         }
 		   mode = MOVE;
          gui = 1;
       } else if (argument == "--move-again") {
-         name = argv[++i];
+         if (argv[i+1] != "--group") {
+            name = argv[++i];
+         }
 		   mode = MOVE;
          gui = 0;
-      } else if (argument == "--move-group") {
-         mode = GROUP;
+      } else if (argument == "--group") {
+         group = 1;
       } else {
          // Do nothing at the moment
          dlgMessageBox("ERROR: Incorrect parameter(s) specified. See the usage instructions for further information.");
@@ -340,21 +357,22 @@ if (board) {
             if (result == 0) {
                cmd = "";
             } else {
-               if (moveMode == 2) {
-                  relative = "R ";
-               }
-               sprintf(tmp, "MOVE %s (%s%f%s %f%s)", name, relative, xval, gridUnits[xunit], yval, gridUnits[yunit]);
-               cmd += tmp;
-               if (setMark) {
-                  sprintf(tmp, "; MARK (%s%f%s %f%s)", relative, xval, gridUnits[xunit], yval, gridUnits[yunit]);
+               if (!group) {
+                  if (moveMode == 2) {
+                     relative = "R ";
+                  }
+                  sprintf(tmp, "MOVE %s (%s%f%s %f%s)", name, relative, xval, gridUnits[xunit], yval, gridUnits[yunit]);
+                  cmd += tmp;
+                  if (setMark) {
+                     sprintf(tmp, "; MARK (%s%f%s %f%s)", relative, xval, gridUnits[xunit], yval, gridUnits[yunit]);
+                     cmd += tmp;
+                  }
+               } else {
+                  sprintf(tmp, "MOVE (>0 0) (%f%s %f%s)", xval, gridUnits[xunit], yval, gridUnits[yunit]);
                   cmd += tmp;
                }
                cmd += "; GRID LAST; ";
             }
-            break;
-
-         case GROUP:
-
             break;
 
          default:
@@ -407,21 +425,22 @@ if (board) {
             if (result == 0) {
                cmd = "";
             } else {
-               if (moveMode == 2) {
-                  relative = "R ";
-               }
-               sprintf(tmp, "MOVE %s (%s%f %f)", name, relative, xval, yval);
-               cmd += tmp;
-               if (setMark) {
-                  sprintf(tmp, "; MARK (%s%f %f)", relative, xval, yval);
+               if (!group) {
+                  if (moveMode == 2) {
+                     relative = "R ";
+                  }
+                  sprintf(tmp, "MOVE %s (%s%f %f)", name, relative, xval, yval);
+                  cmd += tmp;
+                  if (setMark) {
+                     sprintf(tmp, "; MARK (%s%f %f)", relative, xval, yval);
+                     cmd += tmp;
+                  }
+               } else {
+                  sprintf(tmp, "MOVE (>0 0) (%f %f)", xval, yval);
                   cmd += tmp;
                }
                cmd += "; GRID LAST; ";
             }
-
-            break;
-
-         case GROUP:
 
             break;
 
