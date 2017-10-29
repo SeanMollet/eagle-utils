@@ -50,6 +50,9 @@ real xval = 0.0;
 string yinput = "0";
 real yval = 0.0;
 
+int clearGroup = 0;
+string groupName = "";
+
 // Helper functions
 
 string ltostr (int value) {
@@ -97,12 +100,71 @@ int setMoveValues () {
    return sts;
 }
 
-int moveToolsUI () {
+/*
+ *    Function : brdMoveUI()
+ * Description : Create the user interface for the board editor
+ */
+
+int brdMoveUI () {
 
    getMoveValues();
 
    int result = dlgDialog ("Set Move Parameters...") {
-      dlgVBoxLayout {
+      dlgGroup ("Move Mode") {
+         dlgRadioButton("Absolute", moveMode) {
+            relative = ""; // Absolute position so not relative
+            dlgRedisplay();
+         }
+         dlgRadioButton("Relative to self", moveMode) {
+            relative = ""; // Even though it's relative it's still a regular move
+            dlgRedisplay();
+         }
+         dlgRadioButton("Relative to mark", moveMode) {
+            relative = "R"; // We only use this for relative to mark moves
+            dlgRedisplay();
+         }
+      }
+      dlgCheckBox("Update mark to new location", setMark);
+      dlgHBoxLayout {
+         dlgLabel("X:");
+         dlgStringEdit(xinput);
+         dlgComboBox(displayUnits, xunit);
+         dlgLabel("Y:");
+         dlgStringEdit(yinput);
+         dlgComboBox(displayUnits, yunit);
+      }
+      dlgHBoxLayout {
+         dlgPushButton("Help...");
+         dlgStretch(1);
+         dlgPushButton("Cancel") dlgReject(0);
+         dlgPushButton("+OK") {
+            xval = strtod(xinput);
+            yval = strtod(yinput);
+            setMoveValues();
+            dlgAccept(1);
+         }
+      }
+   };
+
+   return result;
+}
+
+/*
+ *    Function : schMoveUI()
+ * Description : Create the user interface for the schematic editor
+ */
+
+int schMoveUI () {
+
+   getMoveValues();
+
+   real xinputd = trunc(strtod(xinput) * 10.0) / 10.0;
+   sprintf(xinput, "%.1f", xinputd);
+   real yinputd = trunc(strtod(yinput) * 10.0) / 10.0;
+   sprintf(yinput, "%.1f", yinputd);
+
+   int result = dlgDialog ("Set Move Parameters...") {
+      dlgGroup("") {
          dlgGroup ("Move Mode") {
             dlgRadioButton("Absolute", moveMode) {
                relative = ""; // Absolute position so not relative
@@ -117,25 +179,36 @@ int moveToolsUI () {
                dlgRedisplay();
             }
          }
-         dlgCheckBox("Update mark to new location", setMark);
-         dlgHBoxLayout {
-            dlgLabel("X:");
-            dlgStringEdit(xinput);
-            dlgComboBox(displayUnits, xunit);
-            dlgLabel("Y:");
-            dlgStringEdit(yinput);
-            dlgComboBox(displayUnits, yunit);
-         }
-         dlgHBoxLayout {
-            dlgPushButton("Help...");
-            dlgStretch(1);
-            dlgPushButton("Cancel") dlgReject(0);
-            dlgPushButton("+OK") {
-               xval = strtod(xinput);
-               yval = strtod(yinput);
-               setMoveValues();
-               dlgAccept(1);
+         dlgGroup("Set Position") {
+            dlgHBoxLayout {
+               dlgLabel("X:");
+               dlgStringEdit(xinput);
+               dlgLabel("Inch.");
+               dlgLabel("Y:");
+               dlgStringEdit(yinput);
+               dlgLabel("Inch.");
+               dlgStretch(1);
             }
+            dlgHBoxLayout {
+               dlgCheckBox("Update mark to new location", setMark);
+            }
+         }
+         dlgLabel("NOTE: Schematic grid of 0.1\" enforced by this utility.");
+
+      }
+      dlgHBoxLayout {
+         dlgPushButton("Help...");
+         dlgStretch(1);
+         dlgPushButton("Cancel") dlgReject(0);
+         dlgPushButton("+OK") {
+            xinputd = strtod(xinput) * 10.0;
+            xinput = dtostr(trunc(xinputd) / 10.0);
+            xval = strtod(xinput);
+            yinputd = strtod(yinput) * 10.0;
+            yinput = dtostr(trunc(yinputd) / 10.0);
+            yval = strtod(yinput);
+            setMoveValues();
+            dlgAccept(1);
          }
       }
    };
@@ -147,7 +220,7 @@ int moveToolsUI () {
 
 string VERSION = "0.1 alpha 1 (26-Oct-2017 12:40)";
 
-enum {NONE, SETMARK, MOVE};
+enum {NONE, SETMARK, MOVE, GROUP};
 int mode = NONE;
 int gui = 0;
 
@@ -177,6 +250,8 @@ for (int i = 1 ; i < argc ; i++) {
          name = argv[++i];
 		   mode = MOVE;
          gui = 0;
+      } else if (argument == "--move-group") {
+         mode = GROUP;
       } else {
          // Do nothing at the moment
          dlgMessageBox("ERROR: Incorrect parameter(s) specified. See the usage instructions for further information.");
@@ -218,7 +293,7 @@ if (board) {
             }
             int result = 1; // Default to running the commands if no UI
             if (gui) {
-               result = moveToolsUI();
+               result = brdMoveUI();
             } else {
                getMoveValues();
             }
@@ -233,6 +308,75 @@ if (board) {
                }
                cmd += "; GRID LAST; ";
             }
+            break;
+
+         case GROUP:
+
+            break;
+
+         default:
+            dlgMessageBox("ERROR: An unspecified error has occurred. See the usage instructions for further information.");
+            break;
+
+      }
+   }
+
+   exit(cmd);
+
+} else if (schematic) {
+
+   // Define variables
+
+   string cmd = "GRID IN 0.1; ";
+   string tmp = "";
+
+   sheet(SH) {
+      switch (mode) {
+
+         case NONE:
+            dlgMessageBox("ERROR: Missing parameter(s). See the usage instructions for further information.");
+            break;
+
+         case SETMARK:
+            SH.instances(I){
+               if (ingroup(I)) {
+                  sprintf(tmp, "MARK (%f %f)", u2mil(I.x), u2mil(I.y));
+                  cmd += tmp;
+               }
+            }
+            cmd += "; GRID LAST; ";
+            break;
+
+         case MOVE:
+            if (!name) {
+               SH.instances(I) {
+                  if (ingroup(I)) {
+                     name = I.name;
+                  }
+               }
+            }
+            int result = 1; // Default to running the commands if no UI
+            if (gui) {
+               result = schMoveUI();
+            } else {
+               getMoveValues();
+            }
+            if (result == 0) {
+               cmd = "";
+            } else {
+               sprintf(tmp, "MOVE %s (%s%f %f)", name, relative, xval, yval);
+               cmd += tmp;
+               if (setMark) {
+                  sprintf(tmp, "; MARK (%s%f %f)", relative, xval, yval);
+                  cmd += tmp;
+               }
+               cmd += "; GRID LAST; ";
+            }
+
+            break;
+
+         case GROUP:
+
             break;
 
          default:
