@@ -85,10 +85,10 @@ int getMoveValues () {
       setMark = strtol(cfgget("ULP:moveTools.sch.setMark", "0"));
       xval = strtod(cfgget("ULP:moveTools.sch.xval", "0"));
       xinput = dtostr(xval);
-      xunit = strtol(cfgget("ULP:moveTools.sch.xunit", "2"));
+      xunit = strtol(cfgget("ULP:moveTools.sch.xunit", "3"));
       yval = strtod(cfgget("ULP:moveTools.sch.yval", "0"));
       yinput = dtostr(yval);
-      yunit = strtol(cfgget("ULP:moveTools.sch.yunit", "2"));
+      yunit = strtol(cfgget("ULP:moveTools.sch.yunit", "3"));
    } else if (library) {
       moveMode = strtol(cfgget("ULP:moveTools.lbr.moveMode", "1"));
       setMark = strtol(cfgget("ULP:moveTools.lbr.setMark", "0"));
