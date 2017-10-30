@@ -68,7 +68,27 @@ helpTitle[BRD] = "Board Usage";
 helpData[BRD]  = "";
 
 helpTitle[CMD] = "Command Line Usage";
-helpData[CMD]  = "";
+helpData[CMD]  = "<p>The following lists the available usage options on the EAGLE command line:</p>"
+                 "<code>run moveTools --install</code><br />"
+                 "<code>run moveTools --version</code><br />"
+                 "<code>run moveTools --about</code><br />"
+                 "<code>run moveTools --help</code><br />"
+                 "<code>run moveTools --license</code><br />"
+                 "<code>run moveTools --set-mark</code><br />"
+                 "<code>run moveTools --move[=<i>name</i>] [--group]</code><br />"
+                 "<code>run moveTools --move-again[=<i>name</i>] [--group]</code>"
+                 "<p>Where:</p>"
+                 "<p><table>"
+                 "<tr><td><code>--install&nbsp;</code></td><td>Install the shortcuts and context menu integrations.</td></tr>"
+                 "<tr><td><code>--version&nbsp;</code></td><td>Displays the version, build date and time of the installed moveTools ULP.</td></tr>"
+                 "<tr><td><code>--about&nbsp;</code></td><td>Shows the \'About moveTools\' tab of the help dialog.</td></tr>"
+                 "<tr><td><code>--help&nbsp;</code></td><td>Displays the \'Command Line Usage\' tab of the help dialog.</td></tr>"
+                 "<tr><td><code>--license&nbsp;</code></td><td>Displays the \'License\' tab of the help dialog, with the option to confirm acceptance of the terms.</td></tr>"
+                 "<tr><td><code>--set-mark&nbsp;</code></td><td>Sets a MARK point in the editor at the location of the selected object.</td></tr>"
+                 "<tr><td><code>--move&nbsp;</code></td><td>Performs a MOVE operation and allows specification of the parameters.</td></tr>"
+                 "<tr><td><code>--move-again&nbsp;</code></td><td>Performs a MOVE oprtation using the previously specified parameters.</td></tr>"
+                 "<tr><td><code>--group&nbsp;</code></td><td>Indicates that the <code>--move</code> or <code>--move-again</code> is to be performed on the currently specified group.</td></tr>"
+                 "</table></p>";
 
 helpTitle[LIC] = "Licence";
 helpData[LIC]  = "<h2 align=\"center\">License : Creative Commons Attribution-ShareAlike 4.0 International</h2>"
