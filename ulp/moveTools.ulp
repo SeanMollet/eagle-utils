@@ -67,6 +67,31 @@ string dtostr (real value) {
    return strValue;
 }
 
+real utogrid(int u, int g) {
+   switch (g) {
+      case GRID_UNIT_MIC:
+         return u2mic(u);
+         break;
+
+      case GRID_UNIT_MM: //
+         return u2mm(u);
+         break;
+
+      case GRID_UNIT_MIL:
+         return u2mil(u);
+         break;
+
+      case GRID_UNIT_INCH:
+         return u2inch(u);
+         break;
+
+      default:
+         dlgMessageBox("ERROR: Abnormal parameter passed to utogrid() function.");
+         exit(0);
+         break;
+   }
+}
+
 int getMoveValues () {
    int sts = -1; // Dummy return value. Not currently used
 
@@ -356,8 +381,10 @@ if (board) {
    string cmd = "GRID FINEST; ";
    string tmp = "";
 
-   real currentX = 0.0;
-   real currentY = 0.0;
+   real currentX  = 0.0;
+   real currentY  = 0.0;
+   real currentGD = 0.0;
+   int  currentGU = 0;
 
    board(B) {
       switch (mode) {
@@ -382,8 +409,6 @@ if (board) {
                   if (!name) {
                      name = E.name;
                   }
-                  currentX = E.x;
-                  currentY = E.y;
                }
             }
             int result = 1; // Default to running the commands if no UI
@@ -395,6 +420,16 @@ if (board) {
             if (result == 0) {
                cmd = "";
             } else {
+               B.elements(E) {
+                  if (ingroup(E)) {
+                     if (E.name == name) {
+                        currentX  = E.x;
+                        currentY  = E.y;
+                        currentGD = B.grid.distance;
+                        currentGU = B.grid.unitdist;
+                     }
+                  }
+               }
                if (!group) {
                   if (moveMode == 0) {
                      sprintf(tmp, "MOVE %s (%f%s %f%s)", name, xval, gridUnits[xunit], yval, gridUnits[yunit]);
@@ -404,10 +439,10 @@ if (board) {
                         cmd += tmp;
                      }
                   } else if (moveMode == 1) {
-                     sprintf(tmp, "MOVE %s (%f%s %f%s)", name, xval, gridUnits[xunit], yval, gridUnits[yunit]);
+                     sprintf(tmp, "MOVE %s (%f%s %f%s)", name, utogrid(currentX,xunit)+xval, gridUnits[xunit], utogrid(currentY,yunit)+yval, gridUnits[yunit]);
                      cmd += tmp;
                      if (setMark) {
-                        sprintf(tmp, "; MARK (%f%s %f%s)", xval, gridUnits[xunit], yval, gridUnits[yunit]);
+                        sprintf(tmp, "; MARK (%f%s %f%s)", utogrid(currentX,xunit)+xval, gridUnits[xunit], utogrid(currentY,yunit)+yval, gridUnits[yunit]);
                         cmd += tmp;
                      }
                   } else if (moveMode == 2) {
@@ -441,6 +476,9 @@ if (board) {
 
    string cmd = "GRID IN 0.1; ";
    string tmp = "";
+
+   real currentX  = 0.0;
+   real currentY  = 0.0;
 
    sheet(SH) {
       switch (mode) {
@@ -476,6 +514,14 @@ if (board) {
             if (result == 0) {
                cmd = "";
             } else {
+               SH.instances(I) {
+                  if (ingroup(I)) {
+                     if (I.name == name) {
+                        currentX  = I.x;
+                        currentY  = I.y;
+                     }
+                  }
+               }
                if (!group) {
                   if (moveMode == 0) {
                      sprintf(tmp, "MOVE %s (%f %f)", name, xval, yval);
@@ -485,10 +531,10 @@ if (board) {
                         cmd += tmp;
                      }
                   } else if (moveMode == 1) {
-                     sprintf(tmp, "MOVE %s (%f %f)", name, xval, yval);
+                     sprintf(tmp, "MOVE %s (%f %f)", name, utogrid(currentX,GRID_UNIT_INCH)+xval, utogrid(currentY,GRID_UNIT_INCH)+yval);
                      cmd += tmp;
                      if (setMark) {
-                        sprintf(tmp, "; MARK (%f %f)", xval, yval);
+                        sprintf(tmp, "; MARK (%f %f)", utogrid(currentX,GRID_UNIT_INCH)+xval, utogrid(currentY,GRID_UNIT_INCH)+yval);
                         cmd += tmp;
                      }
                   } else if (moveMode == 2) {
