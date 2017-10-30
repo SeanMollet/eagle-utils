@@ -142,7 +142,7 @@ real utogrid(int u, int g) {
          return u2mic(u);
          break;
 
-      case GRID_UNIT_MM: //
+      case GRID_UNIT_MM:
          return u2mm(u);
          break;
 
@@ -544,13 +544,11 @@ if (board) {
                cmd = "";
             } else {
                B.elements(E) {
-                  if (ingroup(E)) {
-                     if (E.name == name) {
-                        currentX  = E.x;
-                        currentY  = E.y;
-                        currentGD = B.grid.distance;
-                        currentGU = B.grid.unitdist;
-                     }
+                  if (E.name == name) {
+                     currentX  = E.x;
+                     currentY  = E.y;
+                     currentGD = B.grid.distance;
+                     currentGU = B.grid.unitdist;
                   }
                }
                if (!group) {
@@ -638,11 +636,9 @@ if (board) {
                cmd = "";
             } else {
                SH.instances(I) {
-                  if (ingroup(I)) {
-                     if (I.name == name) {
-                        currentX  = I.x;
-                        currentY  = I.y;
-                     }
+                  if (I.name == name) {
+                     currentX  = I.x;
+                     currentY  = I.y;
                   }
                }
                if (!group) {
