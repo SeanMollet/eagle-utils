@@ -348,9 +348,12 @@ for (int i = 1 ; i < argc ; i++) {
    if (argc > 0) {
       int numParams = strsplit(argument, argv[i], '=') - 1;
       if (argument[0] == "--install") {
-         exit("edit .brd; set context element 'Set Mark...' 'run moveTools --set-mark';"
-              "           set context element 'Move To...' 'run moveTools --move';"
-              "           set context element 'Move Again...' 'run moveTools --move-again';");
+         exit("edit .brd; set context element  'Set Mark...'   'run moveTools --set-mark';"
+              "           set context element  'Move To...'    'run moveTools --move';"
+              "           set context element  'Move Again...' 'run moveTools --move-again';"
+              "edit .sch; set context instance 'Set Mark...'   'run moveTools --set-mark';"
+              "           set context instance 'Move To...'    'run moveTools --move';"
+              "           set context instance 'Move Again...' 'run moveTools --move-again';");
       } else if (argument[0] == "--version") {
          string tmp = "ULP Version: " + VERSION;
          dlgMessageBox(tmp);
