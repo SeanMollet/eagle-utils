@@ -92,6 +92,11 @@ real utogrid(int u, int g) {
    }
 }
 
+/*
+ *    Function : getMoveValues()
+ * Description : Retrieve the previously specified values from the config
+ */
+
 int getMoveValues () {
    int sts = -1; // Dummy return value. Not currently used
 
@@ -130,6 +135,11 @@ int getMoveValues () {
 
    return sts;
 }
+
+/*
+ *    Function : setMoveValues()
+ * Description : Store the currently specified values to the config
+ */
 
 int setMoveValues () {
    int sts = -1; // Dummy return value. Not currently used
