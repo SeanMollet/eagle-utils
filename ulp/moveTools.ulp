@@ -49,9 +49,29 @@ string xinput = "0";
 real xval = 0.0;
 string yinput = "0";
 real yval = 0.0;
-
 int clearGroup = 0;
 string groupName = "";
+
+// Help Data
+
+string helpTitle[];
+string helpData[];
+enum {ABT,SCH,BRD,CMD,LIC};
+
+helpTitle[ABT] = "About moveTools";
+helpData[ABT]  = "";
+
+helpTitle[SCH] = "Schematic Usage";
+helpData[SCH]  = "";
+
+helpTitle[BRD] = "Board Usage";
+helpData[BRD]  = "";
+
+helpTitle[CMD] = "Command Line Usage";
+helpData[CMD]  = "";
+
+helpTitle[LIC] = "Licence";
+helpData[LIC]  = "";
 
 // Helper functions
 
@@ -178,19 +198,15 @@ int setMoveValues () {
  * Description : Create the help dialog
  */
 
-int helpUI () {
+int helpUI (int tabNum) {
 
    int result = dlgDialog ("Help") {
       dlgGroup("") {
-         dlgTabWidget {
-            dlgTabPage ("About moveTools") {
-
-            }
-            dlgTabPage ("Command Line") {
-
-            }
-            dlgTabPage ("Usage Examples") {
-
+         dlgTabWidget (tabNum) {
+            for (int i=0 ; helpTitle[i] ; i++) {
+               dlgTabPage (helpTitle[i]) {
+                  dlgTextView(helpData[i]);
+               }
             }
          }
       }
@@ -248,7 +264,7 @@ int brdMoveUI () {
       }
       dlgHBoxLayout {
          dlgPushButton("Help...") {
-            helpUI();
+            helpUI(BRD);
          }
          dlgStretch(1);
          dlgPushButton("Cancel") dlgReject(0);
@@ -314,7 +330,7 @@ int schMoveUI () {
       }
       dlgHBoxLayout {
          dlgPushButton("Help...") {
-            helpUI();
+            helpUI(SCH);
          }
          dlgStretch(1);
          dlgPushButton("Cancel") dlgReject(0);
@@ -361,8 +377,14 @@ for (int i = 1 ; i < argc ; i++) {
       } else if (argument[0] == "--locate-ulp") {
          dlgMessageBox(argv[0]);
          exit(0);
+      } else if (argument[0] == "--about") {
+         helpUI(ABT);
+         exit(0);
       } else if (argument[0] == "--help") {
-         helpUI();
+         helpUI(CMD);
+         exit(0);
+      } else if (argument[0] == "--license") {
+         helpUI(LIC);
          exit(0);
       } else if (argument[0] == "--set-mark") {
 		   mode = SETMARK;
